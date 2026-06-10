@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum InvoiceStatus {
+  generated
+  email_failed
+  failed
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  invoiceNumber   String        @unique
+  paymentId       String        @unique
+  paymentProvider String
+  status          InvoiceStatus
+  customerEmail   String
+  customerName    String
+  amountGross     Decimal       @db.Decimal(10, 2)
+  currency        String        @default("EUR")
+  issuedAt        DateTime
+  leistungsdatum  DateTime
+  pdfPath         String?
+  createdAt       DateTime      @default(now())
+  isB2B           Boolean       @default(false)
+  vatId           String?
+  customerCountry String?
+
+  @@map("invoices")
+}
+
+model InvoiceCounter {
+  year    Int @id
+  counter Int @default(0)
+
+  @@map("invoice_counters")
+}

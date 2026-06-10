@@ -1,0 +1,43 @@
+services:
+  invoice-service:
+    build: .
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: postgresql://invoice:invoice@db:5432/invoice
+      INVOICE_SERVICE_SECRET: ${INVOICE_SERVICE_SECRET}
+      SELLER_NAME: ${SELLER_NAME}
+      SELLER_ADDRESS_STREET: ${SELLER_ADDRESS_STREET}
+      SELLER_ADDRESS_CITY: ${SELLER_ADDRESS_CITY}
+      SELLER_ADDRESS_ZIP: ${SELLER_ADDRESS_ZIP}
+      SELLER_STEUERNUMMER: ${SELLER_STEUERNUMMER:-}
+      SELLER_VAT_ID: ${SELLER_VAT_ID:-}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-resend}
+      EMAIL_FROM: ${EMAIL_FROM}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      STORAGE_PATH: /data/invoices
+    volumes:
+      - invoice-data:/data/invoices
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: invoice
+      POSTGRES_USER: invoice
+      POSTGRES_PASSWORD: invoice
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U invoice"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  invoice-data:
+  postgres-data:
