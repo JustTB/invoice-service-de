@@ -85,10 +85,13 @@ async function sendSmtp(opts: {
   attachment: { filename: string; content: Buffer; contentType: string };
   config: ReturnType<typeof getConfig>;
 }): Promise<void> {
+  const port = opts.config.SMTP_PORT ?? 587;
   const transporter = nodemailer.createTransport({
     host: opts.config.SMTP_HOST!,
-    port: opts.config.SMTP_PORT ?? 587,
-    auth: opts.config.SMTP_USER
+    port,
+    secure: port === 465,
+    tls: { rejectUnauthorized: process.env.NODE_ENV === 'production' },
+    auth: opts.config.SMTP_USER && opts.config.SMTP_PASS
       ? { user: opts.config.SMTP_USER, pass: opts.config.SMTP_PASS }
       : undefined,
   });

@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const ConfigSchema = z.object({
   PORT: z.coerce.number().default(3000),
-  INVOICE_SERVICE_SECRET: z.string().min(16),
+  INVOICE_SERVICE_SECRET: z.string().min(32),
 
   SELLER_NAME: z.string().min(1),
   SELLER_ADDRESS_STREET: z.string().min(1),

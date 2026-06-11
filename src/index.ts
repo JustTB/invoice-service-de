@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import Fastify from 'fastify';
 import { getConfig } from './lib/config';
 import { healthRoutes } from './routes/health';
@@ -13,6 +14,10 @@ async function main(): Promise<void> {
 
   await fastify.register(helmet);
   await fastify.register(cors, { origin: false });
+  await fastify.register(rateLimit, {
+    max: 30,
+    timeWindow: '1 minute',
+  });
 
   await fastify.register(healthRoutes);
   await fastify.register(invoiceRoutes);

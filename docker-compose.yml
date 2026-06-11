@@ -4,7 +4,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      DATABASE_URL: postgresql://invoice:invoice@db:5432/invoice
+      DATABASE_URL: postgresql://invoice:${POSTGRES_PASSWORD}@db:5432/invoice
       INVOICE_SERVICE_SECRET: ${INVOICE_SERVICE_SECRET}
       SELLER_NAME: ${SELLER_NAME}
       SELLER_ADDRESS_STREET: ${SELLER_ADDRESS_STREET}
@@ -29,7 +29,7 @@ services:
     environment:
       POSTGRES_DB: invoice
       POSTGRES_USER: invoice
-      POSTGRES_PASSWORD: invoice
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:

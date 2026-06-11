@@ -8,7 +8,16 @@ import fs from 'fs';
 import path from 'path';
 import { getConfig } from '../lib/config';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function assertSafeId(invoiceId: string): void {
+  if (!UUID_RE.test(invoiceId)) {
+    throw new Error(`Invalid invoiceId format: ${invoiceId}`);
+  }
+}
+
 export async function storePdf(invoiceId: string, pdfBuffer: Buffer): Promise<string> {
+  assertSafeId(invoiceId);
   const config = getConfig();
 
   if (config.STORAGE_TYPE === 's3') {
@@ -23,7 +32,7 @@ export async function getPdfUrl(pdfPath: string): Promise<string> {
   if (config.STORAGE_TYPE === 's3') {
     const client = buildS3Client(config);
     const cmd = new GetObjectCommand({ Bucket: config.S3_BUCKET!, Key: pdfPath });
-    return getSignedUrl(client, cmd, { expiresIn: 3600 });
+    return getSignedUrl(client, cmd, { expiresIn: 300 });
   }
 
   return `file://${pdfPath}`;

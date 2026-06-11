@@ -1,5 +1,6 @@
 import { InvoiceService as EInvoiceService } from '@e-invoice-eu/core';
 import fs from 'fs';
+import path from 'path';
 import PDFDocument from 'pdfkit';
 import { getConfig } from '../lib/config';
 import type { InvoiceData, LineItem } from '../types/invoice';
@@ -50,9 +51,17 @@ function renderPdf(
 ): void {
   const pageWidth = doc.page.width - MARGIN * 2;
 
-  // Logo
-  if (config.SELLER_LOGO_PATH && fs.existsSync(config.SELLER_LOGO_PATH)) {
-    doc.image(config.SELLER_LOGO_PATH, MARGIN, MARGIN, { height: 50 });
+  // Logo — resolve to absolute path and verify it stays within process.cwd()
+  const logoPath = config.SELLER_LOGO_PATH
+    ? path.resolve(process.cwd(), config.SELLER_LOGO_PATH)
+    : null;
+  const safeLogo =
+    logoPath &&
+    logoPath.startsWith(process.cwd()) &&
+    /\.(png|jpg|jpeg|svg)$/i.test(logoPath) &&
+    fs.existsSync(logoPath);
+  if (safeLogo && logoPath) {
+    doc.image(logoPath, MARGIN, MARGIN, { height: 50 });
     doc.moveDown(3);
   }
 

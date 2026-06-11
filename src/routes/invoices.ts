@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
 import { prisma } from '../lib/db';
@@ -23,8 +24,12 @@ async function authenticate(
   reply: FastifyReply,
 ): Promise<void> {
   const config = getConfig();
-  const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${config.INVOICE_SERVICE_SECRET}`) {
+  const auth = req.headers.authorization ?? '';
+  const expected = `Bearer ${config.INVOICE_SERVICE_SECRET}`;
+  const match =
+    auth.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(auth), Buffer.from(expected));
+  if (!match) {
     return reply.status(401).send({ error: 'Unauthorized' });
   }
 }
@@ -38,7 +43,8 @@ async function handleCreateInvoice(
     body = CreateInvoiceRequestSchema.parse(req.body);
   } catch (err) {
     if (err instanceof ZodError) {
-      return reply.status(400).send({ error: 'Validation error', details: err.errors });
+      req.log.info({ validationErrors: err.errors }, 'Request validation failed');
+      return reply.status(400).send({ error: 'Invalid request' });
     }
     throw err;
   }
